@@ -1,0 +1,6 @@
+{
+  "emails": ["josjaf@gmail.com"],
+  "pipeline_account": {"id":  "12345", "region":  "us-east-1"},
+  "peloton_credentials_parameter_name": "/peloton/json",
+  "peloton_credentials": {"PELOTON_USERNAME":  "josjaf", "PELOTON_PASSWORD":  "test"}
+}
