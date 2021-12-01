@@ -1,0 +1,7 @@
+pandas
+numpy
+pytz
+requests
+chardet
+urllib3
+boto3
