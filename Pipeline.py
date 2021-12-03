@@ -1,9 +1,11 @@
 from aws_cdk import (
     aws_s3,
-    core,
     aws_codecommit,
+    Stack,
+    App,
+    Stage
 )
-from aws_cdk.core import Environment
+
 from aws_cdk.pipelines import (
     CodePipeline,
     ShellStep,
@@ -14,14 +16,12 @@ from PelotonNotifier import PelotonNotifier
 import os
 
 
-
-
-class PipelineS(core.Stack):
-    def __init__(self, app: core.App, id: str, **kwargs) -> None:
+class PipelineS(Stack):
+    def __init__(self, app: App, id: str, **kwargs) -> None:
         super().__init__(app, id)
         # bucket = aws_s3.Bucket(self, 'Bucket', versioned=True)
         repo = aws_codecommit.Repository(self, 'Repo', repository_name='pipeline-mirror')
-        #env = core.Environment(account=os.environ['CDK_DEFAULT_ACCOUNT'], region=os.environ['CDK_DEFAULT_REGION'])
+        # env = core.Environment(account=os.environ['CDK_DEFAULT_ACCOUNT'], region=os.environ['CDK_DEFAULT_REGION'])
 
         pipeline = CodePipeline(self, "Pipeline",
                                 synth=ShellStep("Synth",
@@ -31,7 +31,7 @@ class PipelineS(core.Stack):
                                                 #                             action_name="GitZip"
                                                 #                             ),
                                                 input=CodePipelineSource.code_commit(repository=repo, branch="dev",
-                                                                            ),
+                                                                                     ),
                                                 commands=["npm ci", "npm run build", "npx cdk synth"
                                                           ]
                                                 )
@@ -46,8 +46,10 @@ class PipelineS(core.Stack):
                                          #     region="us-east-1"
                                          # )
                                          ))
-class MyApplication(core.Stage):
+
+
+class MyApplication(Stage):
     def __init__(self, scope, id, *, env=None, outdir=None):
         super().__init__(scope, id, env=env, outdir=outdir)
-        app = core.App()
+        app = App()
         MainStack = PelotonNotifier(self, "PelotonNotify2")

@@ -6,13 +6,19 @@ from aws_cdk import (
     aws_iam,
     aws_sns_subscriptions,
     aws_events_targets as targets,
-    core,
     aws_logs,
-    aws_lambda_python
+    Stack,
+    BundlingOptions,
+    RemovalPolicy,
+    Aws,
+    App,
+Duration,
+Tags
 
 )
 from pathlib import Path
 import json
+
 
 def file_to_string(file):
     with open(file, 'r') as myfile:
@@ -20,10 +26,14 @@ def file_to_string(file):
     myfile.close()
 
     return file_str
+
+
 config = file_to_string('config.json')
 cfg = json.loads(config)
-class PelotonNotifier(core.Stack):
-    def __init__(self, app: core.App, id: str, **kwargs) -> None:
+
+
+class PelotonNotifier(Stack):
+    def __init__(self, app: App, id: str, **kwargs) -> None:
         super().__init__(app, id)
 
         sns_topic = aws_sns.Topic(
@@ -32,7 +42,7 @@ class PelotonNotifier(core.Stack):
         for i in cfg['emails']:
             sns_topic.add_subscription(subscription=aws_sns_subscriptions.EmailSubscription(i))
         layer_path = Path.joinpath(Path.cwd(), 'layer/')
-        bundle = core.BundlingOptions(
+        bundle = BundlingOptions(
             image=lambda_.Runtime.PYTHON_3_8.bundling_image,
             working_directory=str(layer_path),
             command=[
@@ -50,7 +60,7 @@ class PelotonNotifier(core.Stack):
         main_layer = lambda_.LayerVersion(
             self, "mainlayer",
             code=lambda_.Code.from_asset('layer', bundling=bundle),
-            removal_policy=core.RemovalPolicy.RETAIN,
+            removal_policy=RemovalPolicy.RETAIN,
             compatible_architectures=[lambda_.Architecture.X86_64],
             compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
         )
@@ -64,7 +74,7 @@ class PelotonNotifier(core.Stack):
             self, "PelotonNotifier",
             code=lambda_.AssetCode('./function/'),
             handler="lambda_function.lambda_handler",
-            timeout=core.Duration.seconds(30),
+            timeout=Duration.seconds(30),
             runtime=lambda_.Runtime.PYTHON_3_8,
             log_retention=aws_logs.RetentionDays.ONE_MONTH,
             retry_attempts=1,
@@ -75,7 +85,8 @@ class PelotonNotifier(core.Stack):
             }
         )
         parameter = aws_ssm.StringParameter.from_string_parameter_name(self, 'apiparam',
-                                                                       string_parameter_name=cfg['peloton_credentials_parameter_name'])
+                                                                       string_parameter_name=cfg[
+                                                                           'peloton_credentials_parameter_name'])
         parameter.grant_read(lambda_function)
         lambda_function.role.add_to_policy(aws_iam.PolicyStatement(
             sid="Parameters",
@@ -83,8 +94,8 @@ class PelotonNotifier(core.Stack):
             actions=['ssm:GetParameter', 'ssm:GetParameters',
                      'ssm:GetParameterHistory'],
             resources=[
-                f"arn:aws:ssm:{core.Aws.REGION}:{core.Aws.ACCOUNT_ID}:parameter/peloton*",
-                f"arn:aws:ssm:{core.Aws.REGION}:{core.Aws.ACCOUNT_ID}:parameter/peloton/json",
+                f"arn:aws:ssm:{Aws.REGION}:{Aws.ACCOUNT_ID}:parameter/peloton*",
+                f"arn:aws:ssm:{Aws.REGION}:{Aws.ACCOUNT_ID}:parameter/peloton/json",
                 "*"]
         ))
         sns_topic.grant_publish(lambda_function)
@@ -131,5 +142,5 @@ class PelotonNotifier(core.Stack):
         # rule.add_target(targets.LambdaFunction(prod_alias))
         rule.add_target(targets.LambdaFunction(lambda_function))
         for i in [lambda_function, rule]:
-            core.Tags.of(i).add('Name', 'PelotonNotifier')
-            core.Tags.of(i).add('App', 'PelotonNotifier')
+            Tags.of(i).add('Name', 'PelotonNotifier')
+            Tags.of(i).add('App', 'PelotonNotifier')
