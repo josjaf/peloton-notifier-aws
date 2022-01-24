@@ -75,6 +75,7 @@ class PelotonNotifier(Stack):
             code=lambda_.AssetCode('./function/'),
             handler="lambda_function.lambda_handler",
             timeout=Duration.seconds(30),
+            memory_size=256,
             runtime=lambda_.Runtime.PYTHON_3_8,
             log_retention=aws_logs.RetentionDays.ONE_MONTH,
             retry_attempts=1,
@@ -130,14 +131,15 @@ class PelotonNotifier(Stack):
         #
         # # Run every day at 6PM UTC
         # # See https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html
+        cron = dict(
+                week_day='7',
+                minute='15',
+                hour='22',
+                month='*',
+                year='*')
         rule = events.Rule(
             self, "Rule",
-            schedule=events.Schedule.cron(
-                day='*/14',
-                minute='15',
-                hour='23',
-                month='*',
-                year='*'),
+            schedule=events.Schedule.cron(**cron),
         )
         # rule.add_target(targets.LambdaFunction(prod_alias))
         rule.add_target(targets.LambdaFunction(lambda_function))

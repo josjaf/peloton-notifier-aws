@@ -35,29 +35,40 @@ def lambda_handler(event, context):
     #     if diff.days > 30:
     #         filtered_cycling.append(w)
     # cycling = filtered_cycling
+    data = {}
 
-    instructors = []
+    # instructors = []
+    # for w in cycling:
+    #     try:
+    #         instructors.append(w.ride.instructor.name)
+    #     except:
+    #         continue
+    #
+    # instructors = set(instructors)
+    # for i in instructors:
+    #     data[i] = 0
+    cycling = [i for i in cycling if hasattr(i.ride, 'instructor')]
     for w in cycling:
         try:
-            instructors.append(w.ride.instructor.name)
-        except:
-            continue
 
-    graph_data = {'instructors': [], 'duration': []}
-    for w in cycling:
-        try:
             name = w.ride.instructor.name
-            graph_data['instructors'].append(name)
+            # check if the key already exists in the dictionary, and if it doesn't, add it and set to 0
+            if name not in data:
+                data[name] = 0
             duration = w.ride.duration / 60
             duration = int(duration)
-            graph_data['duration'].append(duration)
-        except:
+            data[name] += duration
+        except Exception as e:
+            print(e)
             continue
+
+
+    result = {key: val for key, val in data.items() if val >= 60}
+    graph_data = {'instructors': result.keys(), 'duration': result.values()}
 
     print(f"Minutes by Instructor")
     df = pandas.DataFrame({"Instructor": graph_data['instructors'],
-                           "Duration": graph_data['duration']},
-                          )
+                           "Duration": graph_data['duration']},)
     table = df.pivot_table(index=["Instructor"], values="Duration", aggfunc=numpy.sum)
     sorted_table = table.sort_values("Duration", ascending=False)
     print(sorted_table)
