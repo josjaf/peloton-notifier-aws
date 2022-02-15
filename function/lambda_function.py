@@ -65,8 +65,21 @@ def lambda_handler(event, context):
 
     result = {key: val for key, val in data.items() if val >= 60}
     graph_data = {'instructors': result.keys(), 'duration': result.values()}
-
-    print(f"Minutes by Instructor")
+    message = ""
+    #WantedOutput = sorted(MyDict, key=lambda x : MyDict[x])
+    out = sorted(result.items(), key=lambda x: x[1], reverse=True)
+    string_length = 20
+    title = "Instructor"
+    difference = string_length - len(title)
+    title_string = f'{title}{difference * " "}Minutes\n'
+    main_string = title_string
+    for i in out:
+        name = i[0]
+        mins = i[1]
+        difference = string_length - len(name)
+        new_string = f'{name}{difference * " "}'
+        main_string = main_string + f"{new_string}{mins}\n"
+    print(main_string)
     df = pandas.DataFrame({"Instructor": graph_data['instructors'],
                            "Duration": graph_data['duration']},)
     table = df.pivot_table(index=["Instructor"], values="Duration", aggfunc=numpy.sum)
@@ -77,6 +90,10 @@ def lambda_handler(event, context):
     print(f"Sns Publish: {sns_topic_arn}")
     response = sns.publish(TopicArn=sns_topic_arn,
                            Message=sorted_table.to_string(),
+                           Subject="PelotonNotifier"
+                           )
+    response = sns.publish(TopicArn=sns_topic_arn,
+                           Message=main_string,
                            Subject="PelotonNotifier"
                            )
     print(response)
