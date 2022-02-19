@@ -47,11 +47,7 @@ class PelotonNotifier(Stack):
             working_directory=str(layer_path),
             command=[
                 "bash", "-c",
-                # "ls -lha /asset-input/",
-                # "cat -lha /asset-input/requirements.txt",
-                # # "pip install --no-cache -r /app/requirements.txt -t /asset-output && cp -au . /asset-output"
-                # "mkdir /asset-output",
-                # "touch /asset-output/test.txt"
+
                 "ls -lha && echo josh && pip install --no-cache -r /asset-input/requirements.txt -t /asset-output/python && git clone https://github.com/geudrik/peloton-client-library.git /asset-output/python/peloton"
 
             ],
@@ -61,7 +57,7 @@ class PelotonNotifier(Stack):
             self, "mainlayer",
             code=lambda_.Code.from_asset('layer', bundling=bundle),
             removal_policy=RemovalPolicy.RETAIN,
-            compatible_architectures=[lambda_.Architecture.X86_64],
+            compatible_architectures=[lambda_.Architecture.ARM_64],
             compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
         )
         # main_layer = aws_lambda_python.PythonLayerVersion(
@@ -77,6 +73,7 @@ class PelotonNotifier(Stack):
             timeout=Duration.seconds(30),
             memory_size=256,
             runtime=lambda_.Runtime.PYTHON_3_8,
+            architecture=lambda_.Architecture.ARM_64,
             log_retention=aws_logs.RetentionDays.ONE_MONTH,
             retry_attempts=1,
             # on_failure=aws_lambda_destinations.SnsDestination(sns_topic),
