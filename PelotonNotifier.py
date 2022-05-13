@@ -52,28 +52,24 @@ class PelotonNotifier(Stack):
 
             ],
         )
-
+        arch = lambda_.Architecture.ARM_64
+        runtime = lambda_.Runtime.PYTHON_3_8
         main_layer = lambda_.LayerVersion(
             self, "mainlayer",
             code=lambda_.Code.from_asset('layer', bundling=bundle),
             removal_policy=RemovalPolicy.RETAIN,
-            compatible_architectures=[lambda_.Architecture.ARM_64],
-            compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
+            compatible_architectures=[arch],
+            compatible_runtimes=[runtime],
         )
-        # main_layer = aws_lambda_python.PythonLayerVersion(
-        #     self, "mainlayer",
-        #     entry=str(layer_path),
-        #
-        #     compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
-        # )
+
         lambda_function = lambda_.Function(
             self, "PelotonNotifier",
             code=lambda_.AssetCode('./function/'),
             handler="lambda_function.lambda_handler",
             timeout=Duration.seconds(30),
             memory_size=256,
-            runtime=lambda_.Runtime.PYTHON_3_8,
-            architecture=lambda_.Architecture.ARM_64,
+            runtime=runtime,
+            architecture=arch,
             log_retention=aws_logs.RetentionDays.ONE_MONTH,
             retry_attempts=1,
             # on_failure=aws_lambda_destinations.SnsDestination(sns_topic),

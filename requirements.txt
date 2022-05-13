@@ -1,9 +1,10 @@
-attrs==21.2.0
-aws-cdk-lib==2.0.0
-cattrs==1.8.0
-constructs==10.0.9
-jsii==1.46.0
+attrs==21.4.0
+aws-cdk-lib==2.24.0
+cattrs==22.1.0
+constructs==10.1.7
+exceptiongroup==1.0.0rc5
+jsii==1.58.0
 publication==0.0.3
 python-dateutil==2.8.2
 six==1.16.0
-typing-extensions==3.10.0.2
+typing-extensions==4.2.0
