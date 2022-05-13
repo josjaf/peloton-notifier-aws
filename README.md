@@ -16,7 +16,7 @@
 * `cp config-sample.json config.json`
 * Replace `config.json` values
   * emails, peloton credentials
-* Run `put_param.py` to add the parameter to your account
+* Run `put_param.py` to add the parameter to your account, this parameter is used by the Lambda to log into Peloton
 
 #### Setup
 * Docker must be installed and running - it is required for building the Lambda Layer and Zip since the package you are creating for Lambda is probably not the same system architecture you are currently using
