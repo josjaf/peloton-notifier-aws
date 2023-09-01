@@ -40,7 +40,7 @@ class PelotonNotifier(Stack):
             self, "Topic"
         )
         for i in cfg['emails']:
-            sns_topic.add_subscription(subscription=aws_sns_subscriptions.EmailSubscription(i))
+            sns_topic.add_subscription(topic_subscription=aws_sns_subscriptions.EmailSubscription(i))
         layer_path = Path.joinpath(Path.cwd(), 'layer/')
         bundle = BundlingOptions(
             image=lambda_.Runtime.PYTHON_3_8.bundling_image,
