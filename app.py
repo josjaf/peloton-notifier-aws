@@ -24,7 +24,7 @@ env_pipeline = Environment(account=cfg['pipeline_account']['id'], region=cfg['pi
 from PelotonNotifier import PelotonNotifier
 from Pipeline import PipelineS
 
-env = Environment(account=os.environ['CDK_DEFAULT_ACCOUNT'], region=os.environ['CDK_DEFAULT_REGION'])
+env = Environment(account=cfg['account'], region=os.environ['CDK_DEFAULT_REGION'])
 app = App()
 PelotonNotifier(app, "PelotonNotifier", env=env, description='Peloton Notifier')
 
