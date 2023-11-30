@@ -43,7 +43,7 @@ class PelotonNotifier(Stack):
             sns_topic.add_subscription(topic_subscription=aws_sns_subscriptions.EmailSubscription(i))
         layer_path = Path.joinpath(Path.cwd(), 'layer/')
         bundle = BundlingOptions(
-            image=lambda_.Runtime.PYTHON_3_8.bundling_image,
+            image=lambda_.Runtime.PYTHON_3_11.bundling_image,
             working_directory=str(layer_path),
             command=[
                 "bash", "-c",
@@ -58,7 +58,7 @@ class PelotonNotifier(Stack):
             code=lambda_.Code.from_asset('layer', bundling=bundle),
             removal_policy=RemovalPolicy.RETAIN,
             compatible_architectures=[lambda_.Architecture.ARM_64],
-            compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
+            compatible_runtimes=[lambda_.Runtime.PYTHON_3_11],
         )
         # main_layer = aws_lambda_python.PythonLayerVersion(
         #     self, "mainlayer",
@@ -72,7 +72,7 @@ class PelotonNotifier(Stack):
             handler="lambda_function.lambda_handler",
             timeout=Duration.seconds(30),
             memory_size=256,
-            runtime=lambda_.Runtime.PYTHON_3_8,
+            runtime=lambda_.Runtime.PYTHON_3_11,
             architecture=lambda_.Architecture.ARM_64,
             log_retention=aws_logs.RetentionDays.ONE_MONTH,
             retry_attempts=1,

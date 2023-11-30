@@ -92,10 +92,6 @@ def lambda_handler(event, context):
                            Message=sorted_table.to_string(),
                            Subject="PelotonNotifier"
                            )
-    response = sns.publish(TopicArn=sns_topic_arn,
-                           Message=main_string,
-                           Subject="PelotonNotifier"
-                           )
     print(response)
     print(sorted_table.to_string(justify='justify-all'))
     return
