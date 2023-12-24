@@ -5,3 +5,4 @@ requests
 chardet
 urllib3
 boto3
+secure-smtplib

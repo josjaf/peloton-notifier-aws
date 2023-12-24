@@ -6,7 +6,10 @@ import os
 import numpy
 import pandas
 from datetime import datetime, timezone
-
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 PARAMETER_NAME = os.environ['PELOTON_CREDENTIALS_PARAM']
@@ -17,8 +20,9 @@ def lambda_handler(event, context):
     peloton_param = json.loads(peloton_param)
     print(peloton_param)
     for key, value in peloton_param.items():
-        print(f"Setting {key}: {value}")
-        os.environ[key] = value
+        if key.startswith('PELOTON'):
+            print(f"Setting {key}: {value}")
+            os.environ[key] = value
     # peloton sdk loads environment variables on the import, not when workouts are called, so we import after the environment variables are loaded
     from peloton.peloton import PelotonWorkout
 
@@ -84,16 +88,29 @@ def lambda_handler(event, context):
                            "Duration": graph_data['duration']},)
     table = df.pivot_table(index=["Instructor"], values="Duration", aggfunc=numpy.sum)
     sorted_table = table.sort_values("Duration", ascending=False)
-    print(sorted_table)
-    sns = session.client('sns')
-    sns_topic_arn = ssm.get_parameter(Name='/peloton/sns/arn')['Parameter']['Value']
-    print(f"Sns Publish: {sns_topic_arn}")
-    response = sns.publish(TopicArn=sns_topic_arn,
-                           Message=sorted_table.to_string(),
-                           Subject="PelotonNotifier"
-                           )
-    print(response)
-    print(sorted_table.to_string(justify='justify-all'))
+    sender_email = peloton_param["sender_email"]
+    receiver_email = peloton_param["receiver_email"]
+    password = peloton_param["password"]
+
+    # Create the HTML message
+    subject = "Peloton Notifier"
+    html_body = sorted_table.to_html()
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = receiver_email
+    message["Subject"] = subject
+    message.attach(MIMEText(html_body, "html"))
+
+    # Establish a secure connection with the SMTP server
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+        # Log in to the Gmail account
+        server.login(sender_email, password)
+
+        # Send the email
+        server.sendmail(sender_email, receiver_email, message.as_string())
+
+    print("HTML Email sent successfully.")
     return
 
 
