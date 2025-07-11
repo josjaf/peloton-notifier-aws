@@ -12,10 +12,13 @@ from aws_cdk import (
     RemovalPolicy,
     Aws,
     App,
+    aws_logs as logs,
 Duration,
 Tags
 
 )
+from aws_cdk.aws_logs import RetentionDays, LogRetention
+
 from pathlib import Path
 import json
 
@@ -66,15 +69,24 @@ class PelotonNotifier(Stack):
         #
         #     compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
         # )
+        log_group = logs.LogGroup(
+            self, "PelotonNotifierLogGroup",
+            log_group_name=f"/aws/lambda/PelotonNotifier",
+            retention=logs.RetentionDays.THREE_MONTHS,
+            removal_policy=RemovalPolicy.RETAIN,
+        )
+
         lambda_function = lambda_.Function(
             self, "PelotonNotifier",
             code=lambda_.AssetCode('./function/'),
+            function_name="PelotonNotifier",
             handler="lambda_function.lambda_handler",
             timeout=Duration.seconds(30),
             memory_size=256,
             runtime=lambda_.Runtime.PYTHON_3_13,
             architecture=lambda_.Architecture.ARM_64,
-            log_retention=aws_logs.RetentionDays.ONE_MONTH,
+            log_group=log_group,
+            # log_retention=aws_logs.RetentionDays.ONE_MONTH,
             retry_attempts=1,
             # on_failure=aws_lambda_destinations.SnsDestination(sns_topic),
             layers=[main_layer],
